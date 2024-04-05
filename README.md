@@ -15,6 +15,7 @@
 
 ## 過去の4年実験
 
+- 2023: Raspberry Piを用いた自動開閉ゴミ箱開発 ~ 突如としてRaspberry Piを手に入れた僕、ついにゴミ箱を自動開閉・分別・満杯検出する無敵アイテムに進化させてしまった……! これが本当のスマート生活!? ~（https://github.com/OptMist-Tokyo/experiment2023）
 - 2022: さくさくslack伝言板 (https://github.com/OptMist-Tokyo/experiment2022)
 - 2021: 数理工学の泉 (https://github.com/OptMist-Tokyo/experiment2021)
 - 2020: 退屈な座席決めはPythonにやらせよう (https://github.com/OptMist-Tokyo/experiment2020)
