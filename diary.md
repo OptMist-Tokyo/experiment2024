@@ -47,7 +47,7 @@
   - 外形
   - 基盤
   - 配線（はんだ付けあるかも） 
--  ソフト
+- ソフト
   - 液体量計算
   - 人の水分量計算
   - 信号を送る
@@ -55,3 +55,29 @@
 
 ![test](PXL_20240405_070053393.jpg)
 ![test](PXL_20240405_070125819.jpg)
+
+
+
+# 4/19
+- ラズパイを使うというところを重視したい
+  - micro USB がついている円筒をイメージ（ここからは電源供給のみでよいものとしたい）
+  - 情報はwifiやBluetoothなど、ワイヤレス通信でできるものにしたい
+
+- 買うもの（購入をお願いしたものはリンク添付済み）
+  - ラズパイ Pico WH (1340円)
+    - https://akizukidenshi.com/catalog/g/g118086/
+  - ロードセル＋コンバータ（1398円）
+    - https://www.amazon.co.jp/HX711%E3%83%AD%E3%83%BC%E3%83%89%E3%82%BB%E3%83%AB%E3%83%A2%[…]2%AB%E3%82%BF%E3%82%AB%E3%83%8A&dchild=1&s=industrial&sr=1-2
+    - https://akizukidenshi.com/catalog/g/g118325/
+  - 充電器（microUSB - コンセント）
+    - https://amzn.asia/d/6ooeEie
+  - 充電ケーブル（microUSB - USB-A）
+    - https://amzn.asia/d/fTdL28b
+  - 充電ケーブル（microUSB - USB-C）
+    - https://amzn.asia/d/c4dxobF
+  - 筐体（後で）
+  - LEDライト（後で）
+
+### To do
+- 作業に取り掛かる
+
