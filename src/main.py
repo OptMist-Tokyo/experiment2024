@@ -79,37 +79,6 @@ class HX711:
 
         return result
 
-    def read_average(self, times=3):
-        sum = 0
-        for i in range(times):
-            sum += self.read()
-        return sum / times
-
-    def read_lowpass(self):
-        self.filtered += self.time_constant * (self.read() - self.filtered)
-        return self.filtered
-
-    def get_value(self):
-        return self.read_lowpass() - self.OFFSET
-
-    def get_units(self):
-        return self.get_value() / self.SCALE
-
-    def tare(self, times=15):
-        self.set_offset(self.read_average(times))
-
-    def set_scale(self, scale):
-        self.SCALE = scale
-
-    def set_offset(self, offset):
-        self.OFFSET = offset
-
-    def set_time_constant(self, time_constant = None):
-        if time_constant is None:
-            return self.time_constant
-        elif 0 < time_constant < 1.0:
-            self.time_constant = time_constant
-
     def power_down(self):
         self.pSCK.value(False)
         self.pSCK.value(True)
@@ -127,15 +96,52 @@ class HX711:
 #
 
 # from hx711 import HX711
-from machine import Pin
+from machine import Pin, Timer
+
 
 pin_OUT = Pin(11, Pin.IN, pull=Pin.PULL_DOWN)
 pin_SCK = Pin(10, Pin.OUT)
 
 hx711 = HX711(pin_SCK, pin_OUT)
-hx711.tare()
+
+OFFSET = - 700
+DIV = 412.5
+STABLE_VAR = 0.1
+LIST_SIZE = 10
+CHANGED_THRE = 5
+ZERO_THRE = 10
+# CHANGED_BOTTLE_THRE = 20
+
+prv_mean = None
+val_list = []
+intake_list = []
+
+def measure(timer):
+    global prv_mean
+    val = hx711.read() / DIV - OFFSET
+    val_list.append(val)
+    if len(val_list) > LIST_SIZE:
+        val_list.pop(0)
+    mean = sum(val_list) / len(val_list)
+    var = sum((val - mean) ** 2 for val in val_list) / len(val_list)
+    # print(val, mean, var)
+    if prv_mean is None:
+        prv_mean = mean
+    else:
+        intake = prv_mean - mean
+        if abs(intake) >= CHANGED_THRE and mean >= ZERO_THRE and var <= STABLE_VAR:
+            # if mean - prv_mean >= CHANGED_BOTTLE_THRE:
+            #     print("botttle is empty!")
+            # else:
+            if intake > 0:
+                now = time.localtime()
+                print("intake water!", intake, now)
+                intake_list.append((intake, now))
+            prv_mean = mean
+
+
+timer = Timer()
+timer.init(freq=10, mode=Timer.PERIODIC, callback=measure)
+
 while True:
-    value = hx711.read()
-    value = hx711.get_value()
-    print(value)
-    time.sleep(0.1)
+    time.sleep(1)
