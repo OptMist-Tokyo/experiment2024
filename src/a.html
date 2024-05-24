@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>あ</title>
+        <style>
+            body {
+                background-color:lightcyan;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            h2 {
+                text-align:  center;
+            }
+            table {
+                margin: auto;
+            }
+            td {
+                padding: 1px 8px;
+            }
+            progress {
+                /* -webkit-appearance: none; */
+                border: none;
+                background-color: none;
+            }
+            ::-webkit-progress-bar {
+                background-color:gainsboro;
+                border-radius: 5px;
+                height: 10px;
+            }
+            ::-webkit-progress-value {
+                background-color:deepskyblue;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>あ</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <td>次の水分補給まで残り</td>
+                    <td><progress id="water" max="120" value="60"></progress></td>
+                    <td>60 分</td>
+                </tr>
+                <tr>
+                    <td>飲み物からの水分摂取量</td>
+                    <td><progress id="water" max="1200" value="100"></progress></td>
+                    <td>本日 100 mL / 目標 1200 mL</td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>
