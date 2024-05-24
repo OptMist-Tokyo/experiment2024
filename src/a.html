@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="UTF-8">
         <title>あ</title>
+        <meta http-equiv="refresh" content="2; url=http://%(ref_url)s">
         <style>
             body {
                 background-color:lightcyan;
@@ -30,6 +32,16 @@
                 background-color:deepskyblue;
                 border-radius: 5px;
             }
+            details {
+                text-align: center;
+                border: 1px solid gray;
+            }
+            p {
+                text-align: center;
+            }
+            input {
+                width: 50px;
+            }
         </style>
     </head>
     <body>
@@ -44,9 +56,17 @@
                 <tr>
                     <td>飲み物からの水分摂取量</td>
                     <td><progress id="water" max="1200" value="100"></progress></td>
-                    <td>本日 100 mL / 目標 1200 mL</td>
+                    <td>目標達成率 8.3 %</td>
                 </tr>
             </tbody>
         </table>
+
+        <details><summary>設定</summary>
+            <p>
+                <div class="weight">
+                    体重 <input type="number", value="60"></input> kg
+                </div>
+            </p>
+        </details>
     </body>
 </html>
