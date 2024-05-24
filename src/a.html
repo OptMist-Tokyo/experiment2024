@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>あ</title>
-        <meta http-equiv="refresh" content="2; url=http://%(ref_url)s">
+        <!-- <meta http-equiv="refresh" content="2; url=http://%(ref_url)s"> -->
         <style>
             body {
                 background-color:lightcyan;
@@ -39,7 +39,7 @@
             p {
                 text-align: center;
             }
-            input {
+            input[type="number"] {
                 width: 50px;
             }
         </style>
@@ -62,11 +62,14 @@
         </table>
 
         <details><summary>設定</summary>
-            <p>
-                <div class="weight">
-                    体重 <input type="number", value="60"></input> kg
-                </div>
-            </p>
+            <form>
+                <p>
+                    体重 <input type="number", value="60", name="weight"></input> kg
+                </p>
+                <p>
+                    <input type="button", value="設定を変更", type="submit"></input>
+                </p>
+            </form>
         </details>
     </body>
 </html>
