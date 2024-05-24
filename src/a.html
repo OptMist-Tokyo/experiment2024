@@ -47,7 +47,7 @@
     <body>
         <h2>あ</h2>
         <table>
-            <tbody>
+            <!-- <tbody>
                 <tr>
                     <td>次の水分補給まで残り</td>
                     <td><progress id="water" max="120" value="60"></progress></td>
@@ -58,16 +58,27 @@
                     <td><progress id="water" max="1200" value="100"></progress></td>
                     <td>目標達成率 8.3 %</td>
                 </tr>
-            </tbody>
+            </tbody> -->
+            <tr>
+                <td>次の水分補給まで残り</td>
+                <td><progress id="water" max="120" value="%(hydrate_time)d"></progress></td>
+                <td>%(hydrate_time)d 分</td>
+            </tr>
+            <tr>
+                <td>飲み物からの水分摂取量</td>
+                <td><progress id="water" max="1200" value="%(sum_intake).1f"></progress></td>
+                <td>本日 %(sum_intake).1f mL / 目標 1200 mL</td>
+            </tr>
         </table>
 
         <details><summary>設定</summary>
-            <form>
+            <!-- <form action="http://%(ref_url)s"> -->
+            <form action="file:///Users/dai-oi/Documents/01_大学/*4S/53_実験/a.html">
                 <p>
                     体重 <input type="number", value="60", name="weight"></input> kg
                 </p>
                 <p>
-                    <input type="button", value="設定を変更", type="submit"></input>
+                    <input value="設定を変更", type="submit"></input>
                 </p>
             </form>
         </details>
