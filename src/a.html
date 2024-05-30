@@ -3,6 +3,16 @@
     <head>
         <meta charset="UTF-8">
         <title>あ</title>
+        <script>
+            function reloadIfClosed(timeInterval) {
+                if (document.getElementById("settings").open) {
+                    setTimeout(reloadIfClosed, timeInterval);
+                } else {
+                    location.reload(true);
+                }
+            }
+            setTimeout(reloadIfClosed, 2000);
+        </script>
         <style>
             body {
                 background-color: lightcyan;
