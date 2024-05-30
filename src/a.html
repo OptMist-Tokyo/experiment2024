@@ -3,7 +3,16 @@
     <head>
         <meta charset="UTF-8">
         <title>あ</title>
-        <!-- <meta http-equiv="refresh" content="2; url=http://%(ref_url)s"> -->
+        <script>
+            function reloadIfClosed(timeInterval) {
+                if (document.getElementById("settings").open) {
+                    setTimeout(reloadIfClosed, timeInterval);
+                } else {
+                    location.reload(true);
+                }
+            }
+            setTimeout(reloadIfClosed, 2000);
+        </script>
         <style>
             body {
                 background-color:lightcyan;
@@ -47,18 +56,6 @@
     <body>
         <h2>あ</h2>
         <table>
-            <!-- <tbody>
-                <tr>
-                    <td>次の水分補給まで残り</td>
-                    <td><progress id="water" max="120" value="60"></progress></td>
-                    <td>60 分</td>
-                </tr>
-                <tr>
-                    <td>飲み物からの水分摂取量</td>
-                    <td><progress id="water" max="1200" value="100"></progress></td>
-                    <td>目標達成率 8.3 %</td>
-                </tr>
-            </tbody> -->
             <tr>
                 <td>次の水分補給まで残り</td>
                 <td><progress id="water" max="120" value="%(hydrate_time)d"></progress></td>
@@ -71,7 +68,7 @@
             </tr>
         </table>
 
-        <details><summary>設定</summary>
+        <details id="settings"><summary>設定</summary>
             <!-- <form action="http://%(ref_url)s"> -->
             <form action="file:///Users/dai-oi/Documents/01_大学/*4S/53_実験/a.html">
                 <p>
