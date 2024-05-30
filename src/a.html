@@ -3,41 +3,70 @@
     <head>
         <meta charset="UTF-8">
         <title>あ</title>
-        <!-- <meta http-equiv="refresh" content="2; url=http://%(ref_url)s"> -->
         <style>
             body {
-                background-color:lightcyan;
+                background-color: lightcyan;
                 font-family: Helvetica, Arial, sans-serif;
+                margin: 0;
+                height: 100vh;
+                display: grid;
+                grid-template-columns: 70% 30%;
+                grid-template-rows: auto 1fr auto;
             }
-            h2 {
-                text-align:  center;
+            header {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                padding: 10px;
             }
-            table {
-                margin: auto;
+            .main-content {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .main-content img {
+                max-width: 100%;
+                height: auto;
+            }
+            .right-side {
+                grid-column: 2 / 3;
+                grid-row: 1 / 4;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
+            .right-side table {
+                margin: 20px 0;
+            }
+            .right-side img {
+                width: 60%;
+                height: auto;
+            }
+            details {
+                grid-column: 1 / 2;
+                grid-row: 3;
+                justify-self: end;
+                padding: 10px;
+                text-align: center;
+                border: 1px solid gray;
             }
             td {
                 padding: 1px 8px;
             }
             progress {
-                /* -webkit-appearance: none; */
                 border: none;
                 background-color: none;
             }
             ::-webkit-progress-bar {
-                background-color:gainsboro;
+                background-color: gainsboro;
                 border-radius: 5px;
                 height: 10px;
             }
             ::-webkit-progress-value {
-                background-color:deepskyblue;
+                background-color: deepskyblue;
                 border-radius: 5px;
-            }
-            details {
-                text-align: center;
-                border: 1px solid gray;
-            }
-            p {
-                text-align: center;
             }
             input[type="number"] {
                 width: 50px;
@@ -45,40 +74,36 @@
         </style>
     </head>
     <body>
-        <h2>あ</h2>
-        <table>
-            <!-- <tbody>
+        <header>
+            <h2>あ</h2>
+        </header>
+        <div class="main-content">
+            <img src="image.png" alt="Main Image">
+        </div>
+        <div class="right-side">
+            <table>
                 <tr>
                     <td>次の水分補給まで残り</td>
-                    <td><progress id="water" max="120" value="60"></progress></td>
-                    <td>60 分</td>
+                    <td><progress id="water" max="120" value="%(hydrate_time)d"></progress></td>
+                    <td>%(hydrate_time)d 分</td>
                 </tr>
                 <tr>
                     <td>飲み物からの水分摂取量</td>
-                    <td><progress id="water" max="1200" value="100"></progress></td>
-                    <td>目標達成率 8.3 %</td>
+                    <td><progress id="water" max="1200" value="%(sum_intake).1f"></progress></td>
+                    <td>本日 %(sum_intake).1f mL / 目標 1200 mL</td>
                 </tr>
-            </tbody> -->
-            <tr>
-                <td>次の水分補給まで残り</td>
-                <td><progress id="water" max="120" value="%(hydrate_time)d"></progress></td>
-                <td>%(hydrate_time)d 分</td>
-            </tr>
-            <tr>
-                <td>飲み物からの水分摂取量</td>
-                <td><progress id="water" max="1200" value="%(sum_intake).1f"></progress></td>
-                <td>本日 %(sum_intake).1f mL / 目標 1200 mL</td>
-            </tr>
-        </table>
-
-        <details><summary>設定</summary>
+            </table>
+            <img src="human.svg" alt="Human Image">
+        </div>
+        <details>
+            <summary>設定</summary>
             <!-- <form action="http://%(ref_url)s"> -->
             <form action="file:///Users/dai-oi/Documents/01_大学/*4S/53_実験/a.html">
                 <p>
-                    体重 <input type="number", value="60", name="weight"></input> kg
+                    体重 <input type="number" value="60" name="weight"> kg
                 </p>
                 <p>
-                    <input value="設定を変更", type="submit"></input>
+                    <input value="設定を変更" type="submit">
                 </p>
             </form>
         </details>
