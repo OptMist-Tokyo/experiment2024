@@ -4,6 +4,12 @@
         <meta charset="UTF-8">
         <title>あ</title>
         <script>
+            function setClipHeight(hydrate_time) {
+                var percentage = (hydrate_time / 120) * 100 / 2;
+                document.querySelector('.clip-svg img').style.setProperty('--clip-height', percentage + '%');
+            }
+            setClipHeight(hydrate_time);
+
             function reloadIfClosed(timeInterval) {
                 if (document.getElementById("settings").open) {
                     setTimeout(reloadIfClosed, timeInterval);
@@ -43,16 +49,26 @@
                 grid-column: 2 / 3;
                 grid-row: 1 / 4;
                 display: flex;
-                justify-content: center;
                 align-items: center;
                 flex-direction: column;
             }
             .right-side table {
                 margin: 20px 0;
             }
-            .right-side img {
+            .double-svg {
+                position: relative;
                 width: 60%;
                 height: auto;
+            }
+            .double-svg img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: auto;
+            }
+            .clip-svg img {
+                clip-path: polygon(0 0, 100% 0, 100% var(--clip-height, 50%), 0 var(--clip-height, 50%));
             }
             details {
                 grid-column: 1 / 2;
@@ -103,7 +119,12 @@
                     <td>本日 %(sum_intake).1f mL / 目標 1200 mL</td>
                 </tr>
             </table>
-            <img src="human.svg" alt="Human Image">
+            <div class="double-svg">
+                <img src="human_back.svg" alt="Human Image Back">
+                <div class="clip-svg">
+                    <img src="human.svg" alt="Human Image">
+                </div>
+            </div>
         </div>
         <details>
             <summary>設定</summary>
