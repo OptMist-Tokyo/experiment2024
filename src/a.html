@@ -8,7 +8,10 @@
                 var percentage = (hydrate_time / 120) * 100 / 2;
                 document.querySelector('.clip-svg img').style.setProperty('--clip-height', percentage + '%');
             }
-            setClipHeight(hydrate_time);
+
+            window.onload = function() {
+                setClipHeight(hydrate_time);
+            };
 
             function reloadIfClosed(timeInterval) {
                 if (document.getElementById("settings").open) {
