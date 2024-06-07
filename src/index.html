@@ -5,7 +5,7 @@
         <title>水分摂取量モニター</title>
         <script>
             function setClipHeight(hydrate_time) {
-                var percentage = (hydrate_time / 120) * 100 / 2;
+                var percentage = ((120 - hydrate_time) / 120) * 100 / 2;
                 document.querySelector('.clip-svg img').style.setProperty('--clip-height', percentage + '%');
             }
 
