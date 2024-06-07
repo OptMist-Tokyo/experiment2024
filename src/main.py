@@ -1,67 +1,28 @@
-# MIT License
-
-# Copyright (c) 2019 
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 from machine import enable_irq, disable_irq, idle
+from machine import Pin, Timer
+import network
+import socket
 import time
+import uasyncio as asyncio
+import math
+import re
 
 class HX711:
-    def __init__(self, pd_sck, dout, gain=128):
-        self.pSCK = pd_sck
-        self.pOUT = dout
+    def __init__(self, pSCK, pOUT):
+        self.pSCK = pSCK
+        self.pOUT = pOUT
         self.pSCK.value(False)
 
-        self.GAIN = 0
-        self.OFFSET = 0
-        self.SCALE = 1
-
-        self.time_constant = 0.25
-        self.filtered = 0
-
-        self.set_gain(gain);
-
-    def set_gain(self, gain):
-        if gain is 128:
-            self.GAIN = 1
-        elif gain is 64:
-            self.GAIN = 3
-        elif gain is 32:
-            self.GAIN = 2
-
-        self.read()
-        self.filtered = self.read()
-
-    def is_ready(self):
-        return self.pOUT() == 0
+        self.GAIN = 1
 
     def read(self):
-        # wait for the device being ready
         for _ in range(500):
             if self.pOUT() == 0:
                 break
             time.sleep_ms(1)
         else:
-            raise OSError("Sensor does not respond")
+            raise OSError("Sensor does not respond.")
 
-        # shift in data, and gain & channel info
         result = 0
         for j in range(24 + self.GAIN):
             state = disable_irq()
@@ -70,61 +31,51 @@ class HX711:
             enable_irq(state)
             result = (result << 1) | self.pOUT()
 
-        # shift back the extra bits
         result >>= self.GAIN
-
-        # check sign
         if result > 0x7fffff:
             result -= 0x1000000
-
         return result
 
-    def power_down(self):
-        self.pSCK.value(False)
-        self.pSCK.value(True)
-
-    def power_up(self):
-        self.pSCK.value(False)
-
-
-# Example for micropython.org device, gpio mode
-# Connections:
-# Pin # | HX711
-# ------|-----------
-# 12    | data_pin
-# 13    | clock_pin
-#
-
-# from hx711 import HX711
-from machine import Pin, Timer
-
-
-pin_OUT = Pin(11, Pin.IN, pull=Pin.PULL_DOWN)
-pin_SCK = Pin(10, Pin.OUT)
-
-hx711 = HX711(pin_SCK, pin_OUT)
-
-OFFSET = - 700
+OFFSET = - 690
 DIV = 412.5
-STABLE_VAR = 0.1
+STABLE_VAR = 1.0
 LIST_SIZE = 10
 CHANGED_THRE = 5
 ZERO_THRE = 10
-# CHANGED_BOTTLE_THRE = 20
+body_weight = 60
+consumed_per_min = 1.25 * body_weight / 60
+MINUTE = 60
+HOUR = 60 * 60
+DAY = 24 * 60 * 60
+
+pin_OUT = Pin(11, Pin.IN, pull=Pin.PULL_DOWN)
+pin_SCK = Pin(10, Pin.OUT)
+hx711 = HX711(pin_SCK, pin_OUT)
+led = Pin(0, Pin.OUT)
 
 prv_mean = None
 val_list = []
 intake_list = []
+tbw = 0
 
-def measure(timer):
-    global prv_mean
+from secrets import secrets
+ssid = secrets['ssid']
+password = secrets['password']
+IP_ADDRESS = '192.168.86.41'
+LISTEN_PORT = 80
+from html import html
+
+def measure():
+    global prv_mean, tbw
     val = hx711.read() / DIV - OFFSET
     val_list.append(val)
     if len(val_list) > LIST_SIZE:
         val_list.pop(0)
     mean = sum(val_list) / len(val_list)
     var = sum((val - mean) ** 2 for val in val_list) / len(val_list)
+    now = time.mktime(time.gmtime())
     # print(val, mean, var)
+    # print(val)
     if prv_mean is None:
         prv_mean = mean
     else:
@@ -134,14 +85,112 @@ def measure(timer):
             #     print("botttle is empty!")
             # else:
             if intake > 0:
-                now = time.localtime()
-                print("intake water!", intake, now)
+                print(f"intake of water: {intake}, time: {now}")
+                tbw += intake
                 intake_list.append((intake, now))
             prv_mean = mean
+    if len(intake_list) > 0 and now - intake_list[0][0] > DAY:
+        intake_list.pop(0)
+
+def connect_wlan():
+
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(ssid, password)
+    for _ in range(10):
+        print('Connecting to Wi-Fi router')
+        if wlan.status() < 0 or wlan.status() >= 3:
+            break
+        time.sleep(1)
+    if wlan.status() == 3:
+        wlan_status = wlan.ifconfig()
+        wlan.ifconfig((IP_ADDRESS, wlan_status[1], wlan_status[2], wlan_status[3]))
+        print("Connected!")
+    else:
+        raise RuntimeError('Connection failed: '+str(wlan.status()))
+
+async def http_server(reader, writer):
+    global body_weight
+    peer_ip = reader.get_extra_info('peername')[0]
+    # print(f"Client connected from {peer_ip}")
+    request_line = await reader.readline()
+    print("Request:")
+    print(request_line)
+    while await reader.readline() != b'\r\n':
+        pass
+    request = str(request_line)
+    if 'weight' in request:
+        body_weight = int(re.search(r'weight=(\d+)', request).group(1))
+        # print(body_weight)
+    consumed_per_min = 1.25 * body_weight / 60
+    
+    if 'human.svg' in request:
+        with open('human.svg','rb') as f:
+            data = f.read()
+        response = str(data)
+        print(response)
+        writer.write('HTTP/1.0 200 OK\r\nContent-type: image/svg+xml\r\n\r\n')
+        writer.write(''+response)
+    else:
+        now = time.mktime(time.gmtime())
+        hist = [0] * 24
+        for (intake, t) in intake_list:
+            i = min(23, int((now - t) / 24))
+            hist[i] += intake
+        hist_acc = hist.copy()
+        for i in range(1, 24):
+            hist_acc[i] += hist_acc[i - 1]
+        sum_intake = hist_acc[-1]
+
+        hydrate_time = max(0, math.ceil(tbw / consumed_per_min))
+        ratio_intake = sum_intake / (body_weight * 20) * 100
+        response = html % {'ref_url': IP_ADDRESS, 'sum_intake': sum_intake, 'ratio_intake': ratio_intake, 'hydrate_time': hydrate_time}
+        writer.write('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
+        writer.write(response)
+    
+    await writer.drain()
+    await writer.wait_closed()
+    # print(f"Connection from {peer_ip} closed")
+
+def run():
+    global tbw
+    sum_intake = 0
+    tbw = 0.1  # consumed_per_min * 60
+    prv = time.mktime(time.gmtime())
+    while True:
+        measure()
+        crt = time.mktime(time.gmtime())
+        if crt >= prv + MINUTE:
+            tbw -= consumed_per_min
+            prv = crt
+        # print(crt, tbw)
+        if tbw <= 0:
+            # print(f"hydrate yourself! TBW={tbw}")
+            for _ in range(2):
+                led.value(0)
+                await asyncio.sleep(0.02)
+                led.value(1)
+                await asyncio.sleep(0.03)
+        else:
+            led.value(0)
+            await asyncio.sleep(0.1)
 
 
-timer = Timer()
-timer.init(freq=10, mode=Timer.PERIODIC, callback=measure)
+async def main():
+    connect_wlan()
 
-while True:
-    time.sleep(1)
+    asyncio.create_task(asyncio.start_server(http_server, IP_ADDRESS, LISTEN_PORT))
+    await run()
+
+if __name__ == '__main__':
+    led.value(1)
+    time.sleep(0.02)
+    led.value(0)
+    try:
+        asyncio.run(main())
+
+    except OSError as e:
+        print(f"ERROR: {e}")
+
+    finally:
+        asyncio.new_event_loop()
