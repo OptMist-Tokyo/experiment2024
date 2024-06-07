@@ -11,8 +11,10 @@
                     location.reload(true);
                 }
             }
-            setTimeout(reloadIfClosed, 2000);
+            setTimeout(reloadIfClosed, 10000);
         </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
         <style>
             body {
                 background-color: lightcyan;
@@ -59,7 +61,7 @@
                 grid-row: 3;
                 justify-self: end;
                 padding: 10px;
-                text-align: center;
+                /* text-align: center; */
                 border: 1px solid gray;
             }
             td {
@@ -88,7 +90,107 @@
             <h2>あ</h2>
         </header>
         <div class="main-content">
-            <img src="image.png" alt="Main Image">
+            <select id="chartType" onchange="chartTypeChange()">
+                <option value="intakeChart">時間ごとの水分摂取量</option>
+                <option value="intakeSumChart">累計水分摂取量の推移</option>
+                <!-- <option value="timeChart">水分摂取までの時間の推移</option> -->
+            </select>
+            <br>
+            
+            <canvas id="myChart"></canvas>
+
+            <script>
+                var myChart;
+                function drawChart() {
+                    var ctx = document.getElementById("myChart");
+                    switch (document.getElementById("chartType").value) {
+                        case "intakeChart":
+                            myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                                datasets: [
+                                {
+                                    label: '水分摂取量 [mL]',
+                                    data: [31, 41, 59, 26, 53, 58, 97, 93],
+                                    borderColor: "rgba(0,0,255,0.5)",
+                                    backgroundColor: "rgba(0,0,255,0.5)"
+                                }
+                                ],
+                            },
+                            options: {
+                                title: {
+                                display: true,
+                                text: '水分摂取量'
+                                },
+                                scales: {
+                                    
+                                yAxes: [{
+                                    ticks: {
+                                    suggestedMax: 200,
+                                    suggestedMin: 0,
+                                    stepSize: 10,
+                                    callback: function(value, index, values){
+                                        return  value
+                                    }
+                                    }
+                                }]
+                                },
+                            }
+                            });
+                            break;
+                        case "intakeSumChart":
+                            myChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                                datasets: [
+                                {
+                                    label: '累計水分摂取量 [mL]',
+                                    data: [31, 72, 131, 157, 210, 268, 365, 458],
+                                    borderColor: "rgba(0,0,255,0.5)",
+                                    backgroundColor: "rgba(0,0,255,0.5)"
+                                }
+                                ],
+                            },
+                            options: {
+                                title: {
+                                display: true,
+                                text: '水分摂取量'
+                                },
+                                scales: {
+                                    
+                                yAxes: [{
+                                    ticks: {
+                                    suggestedMax: 1200,
+                                    suggestedMin: 0,
+                                    stepSize: 100,
+                                    callback: function(value, index, values){
+                                        return  value
+                                    }
+                                    }
+                                }]
+                                },
+                            }
+                            });
+                            break;
+                        case "timeChart":
+                            break;
+                    }
+                }
+
+                function chartTypeChange() {
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+                    drawChart();
+                }
+
+                drawChart();
+            </script>
+
+            
+
         </div>
         <div class="right-side">
             <table>
@@ -105,12 +207,18 @@
             </table>
             <img src="human.svg" alt="Human Image">
         </div>
-        <details>
+        <details id="settings">
             <summary>設定</summary>
             <!-- <form action="http://%(ref_url)s"> -->
-            <form action="file:///Users/dai-oi/Documents/01_大学/*4S/53_実験/a.html">
+            <form>
+                <p>
+                    ※この設定画面が開いている間は自動更新がされません
+                </p>
                 <p>
                     体重 <input type="number" value="60" name="weight"> kg
+                </p>
+                <p>
+                    自動更新の間隔 <input type="number" value="10" name="weight"> 秒
                 </p>
                 <p>
                     <input value="設定を変更" type="submit">
