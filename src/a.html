@@ -33,6 +33,7 @@
                 display: grid;
                 grid-template-columns: 70% 30%;
                 grid-template-rows: auto 1fr auto;
+                gap: 10px;
             }
             header {
                 grid-column: 1 / 2;
@@ -43,12 +44,15 @@
                 grid-column: 1 / 2;
                 grid-row: 2;
                 display: flex;
+                flex-direction: column;
                 justify-content: center;
                 align-items: center;
-            }
-            .main-content img {
                 max-width: 100%;
                 height: auto;
+            }
+            select, canvas {
+                width: 70%;
+                margin: 10px 10px;
             }
             .right-side {
                 grid-column: 2 / 3;
@@ -106,7 +110,7 @@
     </head>
     <body>
         <header>
-            <h2>あ</h2>
+            <h1>あ</h1>
         </header>
         <div class="main-content">
             <select id="chartType" onchange="chartTypeChange()">
