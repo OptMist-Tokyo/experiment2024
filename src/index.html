@@ -2,13 +2,16 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>あ</title>
+        <title>水分摂取量モニター</title>
         <script>
             function setClipHeight(hydrate_time) {
-                var percentage = (hydrate_time / 120) * 100 / 2;
+                var percentage = ((120 - hydrate_time) / 120) * 100 / 2;
                 document.querySelector('.clip-svg img').style.setProperty('--clip-height', percentage + '%');
             }
-            setClipHeight(hydrate_time);
+
+            window.onload = function() {
+                setClipHeight(hydrate_time);
+            };
 
             function reloadIfClosed(timeInterval) {
                 if (document.getElementById("settings").open) {
@@ -30,6 +33,7 @@
                 display: grid;
                 grid-template-columns: 70% 30%;
                 grid-template-rows: auto 1fr auto;
+                gap: 10px;
             }
             header {
                 grid-column: 1 / 2;
@@ -40,12 +44,15 @@
                 grid-column: 1 / 2;
                 grid-row: 2;
                 display: flex;
+                flex-direction: column;
                 justify-content: center;
                 align-items: center;
-            }
-            .main-content img {
                 max-width: 100%;
                 height: auto;
+            }
+            select, canvas {
+                width: 70%;
+                margin: 10px 10px;
             }
             .right-side {
                 grid-column: 2 / 3;
@@ -103,7 +110,7 @@
     </head>
     <body>
         <header>
-            <h2>あ</h2>
+            <h1>水分摂取量モニター</h1>
         </header>
         <div class="main-content">
             <select id="chartType" onchange="chartTypeChange()">
