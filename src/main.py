@@ -43,10 +43,11 @@ LIST_SIZE = 10
 CHANGED_THRE = 5
 ZERO_THRE = 10
 body_weight = 60
+refresh_interval = 10000
 consumed_per_min = 1.25 * body_weight / 60
 MINUTE = 60
-HOUR = 60 * 60
-DAY = 24 * 60 * 60
+HOUR = 60 * MINUTE
+DAY = 24 * HOUR
 
 pin_OUT = Pin(11, Pin.IN, pull=Pin.PULL_DOWN)
 pin_SCK = Pin(10, Pin.OUT)
@@ -63,7 +64,7 @@ ssid = secrets['ssid']
 password = secrets['password']
 IP_ADDRESS = '192.168.86.41'
 LISTEN_PORT = 80
-from html import html
+from index import html
 
 def measure():
     global prv_mean, tbw
@@ -75,7 +76,7 @@ def measure():
     var = sum((val - mean) ** 2 for val in val_list) / len(val_list)
     now = time.mktime(time.gmtime())
     # print(val, mean, var)
-    # print(val)
+    print(val)
     if prv_mean is None:
         prv_mean = mean
     else:
@@ -85,7 +86,7 @@ def measure():
             #     print("botttle is empty!")
             # else:
             if intake > 0:
-                print(f"intake of water: {intake}, time: {now}")
+                # print(f"intake of water: {intake}, time: {now}")
                 tbw += intake
                 intake_list.append((intake, now))
             prv_mean = mean
@@ -107,30 +108,37 @@ def connect_wlan():
         wlan.ifconfig((IP_ADDRESS, wlan_status[1], wlan_status[2], wlan_status[3]))
         print("Connected!")
     else:
-        raise RuntimeError('Connection failed: '+str(wlan.status()))
+        pass
+        # raise RuntimeError('Connection failed: '+str(wlan.status()))
 
 async def http_server(reader, writer):
-    global body_weight
+    global body_weight, refresh_interval
     peer_ip = reader.get_extra_info('peername')[0]
     # print(f"Client connected from {peer_ip}")
     request_line = await reader.readline()
-    print("Request:")
-    print(request_line)
+    # print("Request:")
+    # print(request_line)
     while await reader.readline() != b'\r\n':
         pass
     request = str(request_line)
     if 'weight' in request:
         body_weight = int(re.search(r'weight=(\d+)', request).group(1))
+        refresh_interval = int(re.search(r'interval=(\d+)', request).group(1)) * 1000
         # print(body_weight)
     consumed_per_min = 1.25 * body_weight / 60
     
     if 'human.svg' in request:
         with open('human.svg','rb') as f:
             data = f.read()
-        response = str(data)
-        print(response)
+        response = data.decode()
         writer.write('HTTP/1.0 200 OK\r\nContent-type: image/svg+xml\r\n\r\n')
-        writer.write(''+response)
+        writer.write(response)
+    elif 'human_back.svg' in request:
+        with open('human_back.svg','rb') as f:
+            data = f.read()
+        response = data.decode()
+        writer.write('HTTP/1.0 200 OK\r\nContent-type: image/svg+xml\r\n\r\n')
+        writer.write(response)
     else:
         now = time.mktime(time.gmtime())
         hist = [0] * 24
@@ -144,7 +152,10 @@ async def http_server(reader, writer):
 
         hydrate_time = max(0, math.ceil(tbw / consumed_per_min))
         ratio_intake = sum_intake / (body_weight * 20) * 100
-        response = html % {'ref_url': IP_ADDRESS, 'sum_intake': sum_intake, 'ratio_intake': ratio_intake, 'hydrate_time': hydrate_time}
+        response = html % {'ref_url': IP_ADDRESS,
+                           'sum_intake': sum_intake, 'hydrate_time': hydrate_time,
+                           'hist': str(hist), 'hist_acc': str(hist_acc),
+                           'refresh_interval': refresh_interval}
         writer.write('HTTP/1.0 200 OK\r\nContent-type: text/html\r\n\r\n')
         writer.write(response)
     
@@ -155,7 +166,7 @@ async def http_server(reader, writer):
 def run():
     global tbw
     sum_intake = 0
-    tbw = 0.1  # consumed_per_min * 60
+    tbw = consumed_per_min * 60
     prv = time.mktime(time.gmtime())
     while True:
         measure()
@@ -163,7 +174,8 @@ def run():
         if crt >= prv + MINUTE:
             tbw -= consumed_per_min
             prv = crt
-        # print(crt, tbw)
+            
+        print(crt, tbw)
         if tbw <= 0:
             # print(f"hydrate yourself! TBW={tbw}")
             for _ in range(2):
@@ -184,7 +196,7 @@ async def main():
 
 if __name__ == '__main__':
     led.value(1)
-    time.sleep(0.02)
+    time.sleep(0.1)
     led.value(0)
     try:
         asyncio.run(main())
@@ -194,3 +206,4 @@ if __name__ == '__main__':
 
     finally:
         asyncio.new_event_loop()
+
