@@ -1,0 +1,259 @@
+html = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>水分摂取量モニター</title>
+        <script>
+            function setClipHeight(hydrate_time) {
+                var percentage = ((120 - hydrate_time) / 120) * 100 / 2;
+                document.querySelector('.clip-svg img').style.setProperty('--clip-height', percentage + '%%');
+            }
+
+            window.onload = function() {
+                setClipHeight(%(hydrate_time)d);
+            };
+
+            function reloadIfClosed(timeInterval) {
+                if (document.getElementById("settings").open) {
+                    setTimeout(reloadIfClosed, timeInterval);
+                } else {
+                    location.reload(true);
+                }
+            }
+            setTimeout(reloadIfClosed, 10000);
+        </script>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
+        <style>
+            body {
+                background-color: lightcyan;
+                font-family: Helvetica, Arial, sans-serif;
+                margin: 0;
+                height: 100vh;
+                display: grid;
+                grid-template-columns: 70%% 30%%;
+                grid-template-rows: auto 1fr auto;
+                gap: 10px;
+            }
+            header {
+                grid-column: 1 / 2;
+                grid-row: 1;
+                padding: 10px;
+            }
+            .main-content {
+                grid-column: 1 / 2;
+                grid-row: 2;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                max-width: 100%%;
+                height: auto;
+            }
+            select, canvas {
+                width: 70%%;
+                margin: 10px 10px;
+            }
+            .right-side {
+                grid-column: 2 / 3;
+                grid-row: 1 / 4;
+                display: flex;
+                align-items: center;
+                flex-direction: column;
+            }
+            .right-side table {
+                margin: 20px 0;
+            }
+            .double-svg {
+                position: relative;
+                width: 60%%;
+                height: auto;
+            }
+            .double-svg img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%%;
+                height: auto;
+            }
+            .clip-svg img {
+                clip-path: polygon(0 0, 100%% 0, 100%% var(--clip-height, 50%%), 0 var(--clip-height, 50%%));
+            }
+            details {
+                grid-column: 1 / 2;
+                grid-row: 3;
+                justify-self: end;
+                padding: 10px;
+                /* text-align: center; */
+                border: 1px solid gray;
+            }
+            td {
+                padding: 1px 8px;
+            }
+            progress {
+                border: none;
+                background-color: none;
+            }
+            ::-webkit-progress-bar {
+                background-color: gainsboro;
+                border-radius: 5px;
+                height: 10px;
+            }
+            ::-webkit-progress-value {
+                background-color: deepskyblue;
+                border-radius: 5px;
+            }
+            input[type="number"] {
+                width: 50px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>水分摂取量モニター</h1>
+        </header>
+        <div class="main-content">
+            <select id="chartType" onchange="chartTypeChange()">
+                <option value="intakeChart">時間ごとの水分摂取量</option>
+                <option value="intakeSumChart">累計水分摂取量の推移</option>
+                <!-- <option value="timeChart">水分摂取までの時間の推移</option> -->
+            </select>
+            <br>
+            
+            <canvas id="myChart"></canvas>
+
+            <script>
+                var myChart;
+                function drawChart() {
+                    var ctx = document.getElementById("myChart");
+                    switch (document.getElementById("chartType").value) {
+                        case "intakeChart":
+                            myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                                datasets: [
+                                {
+                                    label: '水分摂取量 [mL]',
+                                    data: %(hist)s,
+                                    borderColor: "rgba(0,0,255,0.5)",
+                                    backgroundColor: "rgba(0,0,255,0.5)"
+                                }
+                                ],
+                            },
+                            options: {
+                                title: {
+                                display: true,
+                                text: '水分摂取量'
+                                },
+                                scales: {
+                                    
+                                yAxes: [{
+                                    ticks: {
+                                    suggestedMax: 200,
+                                    suggestedMin: 0,
+                                    stepSize: 10,
+                                    callback: function(value, index, values){
+                                        return  value
+                                    }
+                                    }
+                                }]
+                                },
+                            }
+                            });
+                            break;
+                        case "intakeSumChart":
+                            myChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+                                datasets: [
+                                {
+                                    label: '累計水分摂取量 [mL]',
+                                    data: %(hist_acc)s,
+                                    borderColor: "rgba(0,0,255,0.5)",
+                                    backgroundColor: "rgba(0,0,255,0.5)"
+                                }
+                                ],
+                            },
+                            options: {
+                                title: {
+                                display: true,
+                                text: '水分摂取量'
+                                },
+                                scales: {
+                                    
+                                yAxes: [{
+                                    ticks: {
+                                    suggestedMax: 1200,
+                                    suggestedMin: 0,
+                                    stepSize: 100,
+                                    callback: function(value, index, values){
+                                        return  value
+                                    }
+                                    }
+                                }]
+                                },
+                            }
+                            });
+                            break;
+                        case "timeChart":
+                            break;
+                    }
+                }
+
+                function chartTypeChange() {
+                    if (myChart) {
+                        myChart.destroy();
+                    }
+                    drawChart();
+                }
+
+                drawChart();
+            </script>
+
+            
+
+        </div>
+        <div class="right-side">
+            <table>
+                <tr>
+                    <td>次の水分補給まで残り</td>
+                    <td><progress id="water" max="120" value="%(hydrate_time)d"></progress></td>
+                    <td>%(hydrate_time)d 分</td>
+                </tr>
+                <tr>
+                    <td>飲み物からの水分摂取量</td>
+                    <td><progress id="water" max="1200" value="%(sum_intake).1f"></progress></td>
+                    <td>本日 %(sum_intake).1f mL / 目標 1200 mL</td>
+                </tr>
+            </table>
+            <div class="double-svg">
+                <img src="human_back.svg" alt="Human Image Back">
+                <div class="clip-svg">
+                    <img src="human.svg" alt="Human Image">
+                </div>
+            </div>
+        </div>
+        <details id="settings">
+            <summary>設定</summary>
+            <!-- <form action="http://%(ref_url)s"> -->
+            <form>
+                <p>
+                    ※この設定画面が開いている間は自動更新がされません
+                </p>
+                <p>
+                    体重 <input type="number" value="60" name="weight"> kg
+                </p>
+                <p>
+                    自動更新の間隔 <input type="number" value="10" name="interval"> 秒
+                </p>
+                <p>
+                    <input value="設定を変更" type="submit">
+                </p>
+            </form>
+        </details>
+    </body>
+</html>
+'''
